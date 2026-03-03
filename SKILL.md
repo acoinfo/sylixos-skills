@@ -21,9 +21,8 @@ Parameter collection and execution are handled by Bash scripts. The agent extrac
 
 The helper scripts are in the `scripts/` directory relative to this SKILL.md file. Before calling scripts, resolve the absolute path to this skill directory. Common locations:
 
+- Global (all agents): `~/.agents/skills/sylixos-dev/`
 - Project-level: `<workspace>/.agents/skills/sylixos-dev/`
-- User-level (Claude Code): `~/.agents/skills/sylixos-dev/`
-- User-level (Codex): `~/.codex/skills/sylixos-dev/`
 
 Use `SKILL_DIR` as a shorthand in this document. For example, `$SKILL_DIR/scripts/workspace_init.sh` means the `scripts/workspace_init.sh` file inside whichever location the skill is installed.
 
