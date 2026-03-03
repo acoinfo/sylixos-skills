@@ -17,6 +17,16 @@ Use this skill for:
 
 Parameter collection and execution are handled by Bash scripts. The agent extracts parameters from the user's request and calls the scripts in CLI mode.
 
+## Script Location
+
+The helper scripts are in the `scripts/` directory relative to this SKILL.md file. Before calling scripts, resolve the absolute path to this skill directory. Common locations:
+
+- Project-level: `<workspace>/.agents/skills/sylixos-dev/`
+- User-level (Claude Code): `~/.agents/skills/sylixos-dev/`
+- User-level (Codex): `~/.codex/skills/sylixos-dev/`
+
+Use `SKILL_DIR` as a shorthand in this document. For example, `$SKILL_DIR/scripts/workspace_init.sh` means the `scripts/workspace_init.sh` file inside whichever location the skill is installed.
+
 ## Workspace Modes
 
 | Mode | When to use |
@@ -35,13 +45,13 @@ When the user requests workspace initialization:
 1. **Extract parameters**: From the user's message, determine mode and any explicitly mentioned parameters (platform, version, etc.)
 2. **First run with `--dry-run`**: Call the script to validate and preview the command:
    ```bash
-   bash .agents/skills/sylixos-dev/scripts/workspace_init.sh \
+   bash $SKILL_DIR/scripts/workspace_init.sh \
      --mode=<mode> --platform=<platform> [other params...] --dry-run
    ```
 3. **Show the dry-run output** to the user and ask for confirmation
 4. **Execute**: After user confirms, run again with `--yes` to execute:
    ```bash
-   bash .agents/skills/sylixos-dev/scripts/workspace_init.sh \
+   bash $SKILL_DIR/scripts/workspace_init.sh \
      --mode=<mode> --platform=<platform> [other params...] --yes
    ```
 5. **Report result**: Summarize success or failure
@@ -116,13 +126,13 @@ When the user requests project creation:
 3. **Infer name**: If `--name` not provided but `--source` is a git URL, the script infers the name from the last path segment (strips `.git`)
 4. **First run with `--dry-run`**: Call the script to validate and preview:
    ```bash
-   bash .agents/skills/sylixos-dev/scripts/project_create.sh \
+   bash $SKILL_DIR/scripts/project_create.sh \
      --name=<name> --type=<type> [other params...] --dry-run
    ```
 5. **Show the dry-run output** to the user and ask for confirmation
 6. **Execute**: After user confirms, run again with `--yes`:
    ```bash
-   bash .agents/skills/sylixos-dev/scripts/project_create.sh \
+   bash $SKILL_DIR/scripts/project_create.sh \
      --name=<name> --type=<type> [other params...] --yes
    ```
 7. **Save to registry**: After successful creation, update `data/projects.json` with the project entry (see Registry Management below)
