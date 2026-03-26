@@ -181,6 +181,9 @@ sydev build [project] [--quiet] [-- make-args]
 规则：
 
 - 指定 `project` 时，先按工程名找，再按 `.sydev/Makefile` 里的 `__` 模板名找
+- 执行前会先确保 `.sydev/Makefile` 存在；默认增量更新只补齐缺失工程，不改写已有工程 block
+- 执行普通工程前会同步该工程 `config.mk` 里的 `SYLIXOS_BASE_PATH`
+- 执行 `__` 模板前会同步当前 workspace 全部已识别工程的 `config.mk`
 - 不传参数时进入交互式多选
 - 推荐 Agent 模式使用 `--quiet`
 
@@ -199,7 +202,8 @@ sydev build init [--default]
 
 规则：
 
-- 默认是增量更新 `.sydev/Makefile`
+- 默认是增量更新 `.sydev/Makefile`，只刷新头部并补齐缺失工程 block
+- 已有工程 block 会原样保留
 - `--default` 会整份重生，覆盖用户手改内容
 - 生成后可直接 `make -f .sydev/Makefile <target>`
 
@@ -332,3 +336,11 @@ sydev init --config full-config.json
 - 使用 full 配置风格，不是 `workspace init --config` 的字段名
 - `workspace.cwd` / `workspace.basePath` 缺失时会提示输入
 - 适合 Agent 构造一份可复用的完整环境描述
+
+## 调试相关
+
+- `sydev` 当前没有单独的 `debug` 命令；常见闭环是 `build` / `upload` 之后，通过设备配置里的 telnet 参数登录目标机做验证
+- 调试时，设备信息优先读 `.realevo/devicelist.json`，缺失时回退 `.realevo/config.json`
+- 如果设备没有显式写 telnet 端口、用户名或密码，技能默认回退 `23`、`root`、`root`
+- 需要最小复现时，可以继续用 `sydev project create --mode create --template app|ko ...` 构造临时测试工程
+- 详细调试流程和 SylixOS 文档查找路线见 `sylixos-debugging.md`

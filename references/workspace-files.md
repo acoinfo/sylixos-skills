@@ -197,10 +197,10 @@ export SYLIXOS_BASE_PATH = /path/to/base
 # proj1
 #*******************************************************************************
 proj1:
-	bear --append -- make -C /path/to/proj1 all
+	bear --append -- rl-build build --project=proj1 $(RL_BUILD_ARGS)
 
 clean-proj1:
-	make -C /path/to/proj1 clean
+	rl-build clean --project=proj1 $(RL_CLEAN_ARGS)
 
 rebuild-proj1: clean-proj1 proj1
 
@@ -220,7 +220,8 @@ __demo:
 
 - 每个项目 block 都有 `<name>`、`clean-<name>`、`rebuild-<name>`
 - 非 base 项目额外有 `cp-<name>`
-- 非 base 的 build 命令会自动走 `bear --append -- make -C ... all`
+- 默认生成的新工程 block 会用 `bear --append -- rl-build build --project=<name> $(RL_BUILD_ARGS)`
+- 默认生成的 clean target 会用 `rl-build clean --project=<name> $(RL_CLEAN_ARGS)`
 - base 项目不会生成 `cp-base`
 
 ## 哪些区域可以安全修改
@@ -231,7 +232,7 @@ __demo:
 | `export WORKSPACE_*` | 否 | 自动维护 |
 | `export SYLIXOS_BASE_PATH` | 否 | 自动维护 |
 | `.PHONY` | 否 | 自动维护 |
-| 工程 block 的 build / clean / rebuild | 谨慎 | 增量更新会尽量保留，`--default` 会全部覆盖 |
+| 工程 block 的 build / clean / rebuild | 谨慎 | 默认增量更新会原样保留已有工程 block；`--default` 会全部覆盖 |
 | `cp-<name>` | 是 | 推荐放产物复制逻辑 |
 | `__` 用户模板区域 | 是 | 推荐放多目标编译模板 |
 
@@ -245,7 +246,9 @@ sydev build init
 
 - 不存在 Makefile 时全新生成
 - 已存在时做增量更新
-- 尽量保留已有项目 block 和用户模板区
+- 刷新头部注释、`export WORKSPACE_*`、`export SYLIXOS_BASE_PATH`、`.PHONY`
+- 已有工程 block 原样保留，不重写其中的 build / clean / rebuild / cp 逻辑
+- 保留用户模板区
 - 项目新增时只追加缺失 block
 - 项目删除时只删除对应 block
 
@@ -260,12 +263,17 @@ sydev build init --default
 
 ## `config.mk` 的自动修补
 
-`build init` 和 `build/rebuild` 会同步所有非 base 工程的 `config.mk`：
+`sydev build init` 只维护 `.sydev/Makefile`，不会同步项目 `config.mk`。
 
-- 更新 `SYLIXOS_BASE_PATH`
-- 如果 base `config.mk` 里 `MULTI_PLATFORM_BUILD=yes`，且项目里还没有 `PLATFORM_NAME`，会自动插入
+真正会修补 `config.mk` 的是执行目标前的 `build` / `clean` / `rebuild`：
+
+- 普通工程：只同步当前目标工程的 `config.mk`
+- `sydev build __template`：会同步当前 workspace 中已识别的所有工程
+- 当前实现只更新或追加 `SYLIXOS_BASE_PATH`
+- 当前实现不会自动插入 `PLATFORM_NAME`
 
 因此：
 
-- 改了 base 路径后，优先重新执行 `sydev build init`
+- 改了 base 路径后，如需刷新 `.sydev/Makefile`，先跑 `sydev build init`
+- 如需把项目 `config.mk` 同步到当前 base，再跑 `sydev build <project>` / `sydev clean <project>` / `sydev rebuild <project>` 或对应模板
 - 如果项目 `config.mk` 明显与当前 base 脱节，不要只手改 `.sydev/Makefile`
